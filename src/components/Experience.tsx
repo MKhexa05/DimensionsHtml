@@ -85,6 +85,28 @@ export const Experience = observer(() => {
         position: "relative",
       }}
     >
+      {" "}
+      <div
+        style={{
+          position: "absolute",
+          top: "16px",
+          left: "309px",
+          width: "300px",
+          lineHeight: "1.2",
+          zIndex: 1200,
+          background: "rgba(30, 30, 30, 0.85)",
+          color: "white",
+          border: "1px solid rgba(255, 255, 255, 0.15)",
+          borderRadius: "10px",
+          padding: "8px 12px",
+          fontSize: "22px",
+          fontWeight: 600,
+          letterSpacing: "0.2px",
+          backdropFilter: "blur(8px)",
+        }}
+      >
+        Dimensions with Line and Html from Drei
+      </div>
       <Toolbar />
       <WallCountTweak />
       <InfoOverlay />

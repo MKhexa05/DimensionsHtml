@@ -1,10 +1,9 @@
 import { observer } from "mobx-react-lite";
 import * as THREE from "three";
 import { Wall } from "../store/Wall";
-import { Container, Text } from "@react-three/uikit";
 import { Html, Line } from "@react-three/drei";
 import { useThree, type ThreeEvent } from "@react-three/fiber";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { appStore } from "../store/AppStore";
 import { formatDimension } from "../utils/dimensionUtils";
 
@@ -28,7 +27,6 @@ export const DimensionRenderer = observer(
 
     const { camera, raycaster, mouse } = useThree();
     const [isDragging, setIsDragging] = useState(false);
-    const labelGroupRef = useRef<THREE.Group>(null);
 
     const start = wall.startPoint;
     const end = wall.endPoint;
@@ -155,7 +153,7 @@ export const DimensionRenderer = observer(
           points={[dimStart, dimEnd, start, extStart, end, extEnd]}
           segments={true}
           color={DIM_COLOR}
-          lineWidth={1.2}
+          lineWidth={1.5}
         />
 
         {/* Extension Lines - from wall to dimension line + tick */}
