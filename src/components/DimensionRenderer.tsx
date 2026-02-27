@@ -151,11 +151,16 @@ export const DimensionRenderer = observer(
         onPointerMove={onPointerMove}
       >
         {/* Main Dimension Line */}
-        <Line points={[dimStart, dimEnd]} color={DIM_COLOR} lineWidth={2.7} />
+        <Line
+          points={[dimStart, dimEnd, start, extStart, end, extEnd]}
+          segments={true}
+          color={DIM_COLOR}
+          lineWidth={1.2}
+        />
 
         {/* Extension Lines - from wall to dimension line + tick */}
-        <Line points={[start, extStart]} color={DIM_COLOR} lineWidth={1.2} />
-        <Line points={[end, extEnd]} color={DIM_COLOR} lineWidth={1.2} />
+        {/* <Line points={[start, extStart]} color={DIM_COLOR} lineWidth={1.2} />
+        <Line points={[end, extEnd]} color={DIM_COLOR} lineWidth={1.2} /> */}
 
         {/* UIKit Label */}
         {/* <group
