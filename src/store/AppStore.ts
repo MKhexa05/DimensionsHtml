@@ -19,6 +19,8 @@ class AppStore {
   seedWalls: Wall[] = [];
   userWalls: Wall[] = [];
   visibleSeedWallCount = 0;
+  cameraZoom = 50;
+  showDimensionRenderer = true;
   activeTool: ActiveTool = "select";
   selectedWallId: string | null = null;
   drawingWall: Wall | null = null;
@@ -62,6 +64,24 @@ class AppStore {
       this.selectedWallId = null;
       this.closeLengthModal();
     }
+  }
+
+  setCameraZoom(zoom: number) {
+    if (!Number.isFinite(zoom)) return;
+    const next = Math.max(0.0001, zoom);
+    if (Math.abs(next - this.cameraZoom) < 1e-6) return;
+    this.cameraZoom = next;
+  }
+
+  setShowDimensionRenderer(show: boolean) {
+    this.showDimensionRenderer = show;
+    if (!show) {
+      this.closeLengthModal();
+    }
+  }
+
+  toggleDimensionRenderer() {
+    this.setShowDimensionRenderer(!this.showDimensionRenderer);
   }
 
   get maxSeedWallCount(): number {

@@ -1,6 +1,6 @@
-import { observer } from 'mobx-react-lite';
+import { observer } from "mobx-react-lite";
 import { appStore, type ActiveTool } from '../../store/AppStore';
-import { MousePointer2, PenTool, Ruler } from 'lucide-react';
+import { Eye, EyeOff, MousePointer2, PenTool, Ruler } from 'lucide-react';
 import { useEffect } from 'react';
 
 export const Toolbar = observer(() => {
@@ -61,6 +61,24 @@ export const Toolbar = observer(() => {
           </button>
         );
       })}
+      <button
+        onClick={() => appStore.toggleDimensionRenderer()}
+        title={appStore.showDimensionRenderer ? 'Hide Labels' : 'Show Labels'}
+        style={{
+          background: appStore.showDimensionRenderer ? '#10b981' : 'transparent',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          padding: '8px 12px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        {appStore.showDimensionRenderer ? <Eye size={20} /> : <EyeOff size={20} />}
+      </button>
     </div>
   );
 });

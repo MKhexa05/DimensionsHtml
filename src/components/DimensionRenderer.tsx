@@ -9,11 +9,17 @@ import { formatDimension } from "../utils/dimensionUtils";
 
 interface DimensionRendererProps {
   wall: Wall;
+  showLabel?: boolean;
 }
 
 const DIM_COLOR = "#3b82f6";
-const TICK_SIZE = 0.2; // Extra length for extension lines
-// const BASE_UI_ZOOM = 50;
+const TICK_SIZE = 0.2;
+const LABEL_BASE_ZOOM = 50;
+const LABEL_BASE_SCALE = 1.5;
+const LABEL_SCALE_POWER = 1;
+const LABEL_MIN_SCALE = 0.75;
+const LABEL_MAX_SCALE = 1.5;
+
 const getReadableParallelAngle = (baseAngle: number) => {
   let angle = Math.atan2(Math.sin(baseAngle), Math.cos(baseAngle));
   if (angle > Math.PI / 2) angle -= Math.PI;
@@ -21,8 +27,15 @@ const getReadableParallelAngle = (baseAngle: number) => {
   return angle;
 };
 
+const getLabelScaleFromZoom = (zoom: number) => {
+  const safeZoom = Math.max(zoom, 0.0001);
+  const scale =
+    LABEL_BASE_SCALE * Math.pow(LABEL_BASE_ZOOM / safeZoom, LABEL_SCALE_POWER);
+  return THREE.MathUtils.clamp(scale, LABEL_MIN_SCALE, LABEL_MAX_SCALE);
+};
+
 export const DimensionRenderer = observer(
-  ({ wall }: DimensionRendererProps) => {
+  ({ wall, showLabel = true }: DimensionRendererProps) => {
     if (!wall.dimension) return null;
 
     const { camera, raycaster, mouse } = useThree();
@@ -44,6 +57,7 @@ export const DimensionRenderer = observer(
     }, [camera, mouse, raycaster]);
 
     const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
+      if (!showLabel) return;
       if (appStore.activeTool === "wall") return;
       e.stopPropagation();
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
@@ -57,6 +71,7 @@ export const DimensionRenderer = observer(
     };
 
     const onPointerMove = (e: ThreeEvent<PointerEvent>) => {
+      if (!showLabel) return;
       if (!isDragging) return;
       e.stopPropagation();
 
@@ -79,7 +94,6 @@ export const DimensionRenderer = observer(
     let extStart: THREE.Vector3;
     let extEnd: THREE.Vector3;
 
-    // dimension lines update based on the locked-axis or free
     if (dimension.lockedAxis === "x") {
       const dimY = wall.center.y + dimension.offset;
       dimStart = new THREE.Vector3(start.x, dimY, 0);
@@ -112,7 +126,6 @@ export const DimensionRenderer = observer(
       extEnd = dimEnd.clone().add(extTick);
     }
 
-    // lenght on the basis of locked axis or free
     let lengthValue = wall.length;
     if (dimension.lockedAxis === "x") {
       lengthValue = Math.abs(end.x - start.x);
@@ -129,18 +142,7 @@ export const DimensionRenderer = observer(
           : getReadableParallelAngle(
               Math.atan2(wall.direction.y, wall.direction.x),
             );
-
-    // useFrame(() => {
-    //   const labelGroup = labelGroupRef.current;
-    //   if (!labelGroup) return;
-    //   if ((camera as THREE.Camera & { isOrthographicCamera?: boolean }).isOrthographicCamera) {
-    //     const ortho = camera as THREE.OrthographicCamera;
-    //     const scale = BASE_UI_ZOOM / Math.max(ortho.zoom, 0.0001);
-    //     labelGroup.scale.set(scale, scale, 1);
-    //   } else {
-    //     labelGroup.scale.set(1, 1, 1);
-    //   }
-    // });
+    const labelScale = showLabel ? getLabelScaleFromZoom(appStore.cameraZoom) : 1;
 
     return (
       <group
@@ -148,7 +150,6 @@ export const DimensionRenderer = observer(
         onPointerUp={onPointerUp}
         onPointerMove={onPointerMove}
       >
-        {/* Main Dimension Line */}
         <Line
           points={[dimStart, dimEnd, start, extStart, end, extEnd]}
           segments={true}
@@ -156,50 +157,40 @@ export const DimensionRenderer = observer(
           lineWidth={1.5}
         />
 
-        {/* Extension Lines - from wall to dimension line + tick */}
-        {/* <Line points={[start, extStart]} color={DIM_COLOR} lineWidth={1.2} />
-        <Line points={[end, extEnd]} color={DIM_COLOR} lineWidth={1.2} /> */}
-
-        {/* UIKit Label */}
-        {/* <group
-          ref={labelGroupRef}
-          scale={1.5}
-          position={dimCenter}
-          rotation={[0, 0, angle]}
-        > */}
-        <Html
-          position={dimCenter}
-          rotation={[0, 0, angle]}
-          transform
-          center
-          distanceFactor={8}
-          zIndexRange={[10, 0]}
-          pointerEvents="auto"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div
-            style={{
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "6px",
-              padding: "2px 4px",
-              fontSize: "18px",
-              fontWeight: 600,
-              color: "#1e293b",
-              whiteSpace: "nowrap",
-              userSelect: "none",
-              cursor: "pointer",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
-            }}
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              appStore.openLengthModal(wall.id, dimension.lockedAxis);
-            }}
-          >
-            {lengthText}
-          </div>
-        </Html>
-        {/* </group> */}
+        {showLabel && (
+          <group position={dimCenter} rotation={[0, 0, angle]} scale={labelScale}>
+            <Html
+              transform
+              center
+              distanceFactor={8}
+              zIndexRange={[10, 0]}
+              pointerEvents="auto"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "6px",
+                  padding: "2px 4px",
+                  fontSize: "18px",
+                  fontWeight: 600,
+                  color: "#1e293b",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+                }}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  appStore.openLengthModal(wall.id, dimension.lockedAxis);
+                }}
+              >
+                {lengthText}
+              </div>
+            </Html>
+          </group>
+        )}
       </group>
     );
   },

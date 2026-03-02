@@ -20,14 +20,11 @@ const Scene = observer(() => {
       <ambientLight intensity={0.5} />
       <pointLight position={[10, 10, 10]} />
 
-      {/* Infinite Grid on XY Plane */}
       <Grid
         infiniteGrid
         fadeDistance={50}
         fadeStrength={5}
         cellSize={1}
-        // sectionSize={12}
-        // sectionThickness={1.5}
         sectionColor="#cbd5e1"
         cellColor="black"
         rotation={[Math.PI / 2, 0, 0]}
@@ -36,9 +33,16 @@ const Scene = observer(() => {
       <OrbitControls
         enableRotate={false}
         mouseButtons={{ LEFT: undefined, MIDDLE: 1, RIGHT: 2 }}
+        onChange={(e) => {
+          if (!e) return;
+          if (!appStore.showDimensionRenderer) return;
+          const zoom = (e.target.object as { zoom?: number }).zoom;
+          if (typeof zoom === "number") {
+            appStore.setCameraZoom(zoom);
+          }
+        }}
       />
 
-      {/* Render existing walls */}
       {appStore.walls.map((wall) => (
         <group key={wall.id}>
           <WallMesh
@@ -58,17 +62,20 @@ const Scene = observer(() => {
               }
             }}
           />
-          {wall.dimension && <DimensionRenderer wall={wall} />}
+          {wall.dimension && (
+            <DimensionRenderer
+              wall={wall}
+              showLabel={appStore.showDimensionRenderer}
+            />
+          )}
           {appStore.selectedWallId === wall.id && <WallEndpoints wall={wall} />}
         </group>
       ))}
 
-      {/* Render rubber-band wall */}
       {appStore.drawingWall && (
         <WallMesh wall={appStore.drawingWall} isPreview />
       )}
 
-      {/* Drawing & Dimension Tool Logic */}
       <WallDrawTool />
       <DimensionTool />
     </>
@@ -85,7 +92,6 @@ export const Experience = observer(() => {
         position: "relative",
       }}
     >
-      {" "}
       <div
         style={{
           position: "absolute",
